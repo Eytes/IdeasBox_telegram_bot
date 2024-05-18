@@ -1,0 +1,34 @@
+name: Type checking with mypy
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      python-version:
+        required: true
+        type: string
+      source_path:
+        required: true
+        type: string
+
+jobs:
+  typing_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pip install poetry
+
+      - name: Set up Python${{ inputs.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: "poetry"
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run mypy
+        run: poetry run mypy ${{ inputs.source_path }}

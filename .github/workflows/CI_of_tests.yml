@@ -1,0 +1,63 @@
+name: CI of tests
+run-name: ${{ github.event_name }} to ${{ github.ref_name }} by @${{ github.actor }}
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+    paths:
+      - tests/**
+      - .github/**
+  push:
+    branches-ignore:
+      - main
+      - dev
+    paths:
+      - tests/**
+      - .github/**
+
+env:
+  TESTS_PATH: ./tests
+
+jobs:
+  prepare_tests_path:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo prepare_tests_path
+    outputs:
+      tests_path: ${{ env.TESTS_PATH }}
+
+  linting_black:
+    name: Linting with Black (Python${{ matrix.python-version }})
+    needs: [ prepare_tests_path ]
+    strategy:
+      matrix:
+        python-version: [ "3.12" ]
+    uses: "./.github/workflows/black.yml"
+    with:
+      source_path: ${{ needs.prepare_tests_path.outputs.tests_path }}
+      python-version: ${{ matrix.python-version }}
+      optional_feature: '--line-length 88 --verbose --diff --color'
+
+  linting_flake8:
+    name: Linting with flake8 (Python${{ matrix.python-version }})
+    needs: [ prepare_tests_path ]
+    strategy:
+      matrix:
+        python-version: [ "3.12" ]
+    uses: "./.github/workflows/flake8.yml"
+    with:
+      source_path: ${{ needs.prepare_tests_path.outputs.tests_path }}
+      python-version: ${{ matrix.python-version }}
+
+  typing_mypy:
+    name: Checking static types with mypy (Python${{ matrix.python-version }})
+    needs: [ prepare_tests_path ]
+    strategy:
+      matrix:
+        python-version: [ "3.12" ]
+    uses: "./.github/workflows/mypy.yml"
+    with:
+      source_path: ${{ needs.prepare_tests_path.outputs.tests_path }}
+      python-version: ${{ matrix.python-version }}

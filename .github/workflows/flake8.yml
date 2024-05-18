@@ -1,0 +1,35 @@
+name: Linting with flake8
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      python-version:
+        required: true
+        type: string
+      source_path:
+        required: true
+        type: string
+      max-line-length:
+        required: false
+        default: 88
+        type: number
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4
+
+      - name: Set up Python${{ inputs.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: "pip"
+
+      - name: Install flake8 and plugins
+        run: pip install flake8 flake8-bugbear flake8-pyproject
+
+      - name: Flake8 linting
+        run: flake8 ${{ inputs.source_path }}
