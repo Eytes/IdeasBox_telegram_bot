@@ -18,9 +18,16 @@ class AsyncMongoRegistry:
         result = await self.__collection.insert_one(item_data.model_dump(by_alias=True))
         return result.inserted_id
 
+    async def update(self, item_id, new_data: BaseModel):
+        """Обновление данных в БД"""
+        return await self.__collection.find_one_and_update(
+            {"_id": item_id},
+            {"$set": new_data.model_dump()},
+        )
+
     async def delete_by_id(self, item_id):
         """Удаление записи из БД"""
-        await self.__collection.find_one_and_delete({"_id": item_id})
+        return await self.__collection.find_one_and_delete({"_id": item_id})
 
 
 class AsyncMongoRegistryFactory:
